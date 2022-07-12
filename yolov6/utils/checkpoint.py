@@ -51,10 +51,10 @@ def strip_optimizer(ckpt_dir, epoch):
         ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'))
         if ckpt.get('ema'):
             ckpt['model'] = ckpt['ema']  # replace model with ema
-        for k in ['optimizer', 'ema', 'updates']:  # keys
-            ckpt[k] = None
+        # for k in ['optimizer', 'ema', 'updates']:  # keys
+        #     ckpt[k] = None
         ckpt['epoch'] = epoch
-        ckpt['model'].half()  # to FP16
-        for p in ckpt['model'].parameters():
-            p.requires_grad = False
+        # ckpt['model'].half()  # to FP16
+        # for p in ckpt['model'].parameters():
+        #     p.requires_grad = False
         torch.save(ckpt, ckpt_path)

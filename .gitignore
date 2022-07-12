@@ -104,6 +104,9 @@ venv.bak/
 # Pytorch
 *.pth
 *.pt
+
+#onnx
+*.onnx
 #vscode
 .vscode/*
 
@@ -115,3 +118,6 @@ venv.bak/
 *.png
 *.txt
 *.xml
+
+#
+data/*/*/*.json

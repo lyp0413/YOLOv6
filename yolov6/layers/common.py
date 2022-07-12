@@ -499,3 +499,68 @@ class DetectBackend(nn.Module):
         if isinstance(y, np.ndarray):
             y = torch.tensor(y, device=self.device)
         return y
+
+
+class ManCraft(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.g_k0=torch.tensor([[0.0757, 0.1249, 0.0757],
+        [0.1249, 0.1978, 0.1249],
+        [0.0757, 0.1249, 0.0757]])
+        self.g_k0=torch.tile(self.g_k0,[1,3,1,1])
+        self.g_k1=torch.tensor([[0.0030, 0.0132, 0.0223, 0.0132, 0.0030],
+        [0.0132, 0.0598, 0.0983, 0.0598, 0.0132],
+        [0.0223, 0.0983, 0.1611, 0.0983, 0.0223],
+        [0.0132, 0.0598, 0.0983, 0.0598, 0.0132],
+        [0.0030, 0.0132, 0.0223, 0.0132, 0.0030]])
+        self.g_k1=torch.tile(self.g_k1,[1,3,1,1])
+        self.gray_k=torch.tensor([[0.114,0.587,0.299]]).reshape([1,3,1,1])
+        self.la_k=torch.tensor([[0,1,0],[1,-4,1],[0,1,0]]).float()
+        self.la_k = torch.tile(self.la_k, [1, 3, 1, 1])
+        self.grad_k=torch.tensor([[[[1,0,0],[0,-1,0],[0,0,0]],
+                                  [[1, 0, 0], [0, -1, 0], [0, 0, 0]],
+                                  [[1, 0, 0], [0, -1, 0], [0, 0, 0]]],
+                                  [[[0,1,0],[0,-1,0],[0,0,0]],
+                                   [[0, 1, 0], [0, -1, 0], [0, 0, 0]],
+                                   [[0, 1, 0], [0, -1, 0], [0, 0, 0]]],
+                                  [[[0,0,1],[0,-1,0],[0,0,0]],
+                                   [[0, 0, 1], [0, -1, 0], [0, 0, 0]],
+                                   [[0, 0, 1], [0, -1, 0], [0, 0, 0]]],
+                                  [[[0,0,0],[1,-1,0],[0,0,0]],
+                                   [[0, 0, 0], [1, -1, 0], [0, 0, 0]],
+                                   [[0, 0, 0], [1, -1, 0], [0, 0, 0]]],
+                                  [[[0,0,0],[0,-1,1],[0,0,0]],
+                                   [[0, 0, 0], [0, -1, 1], [0, 0, 0]],
+                                   [[0, 0, 0], [0, -1, 1], [0, 0, 0]]],
+                                  [[[0,0,0],[0,0,0],[1,0,0]],
+                                   [[0, 0, 0], [0, 0, 0], [1, 0, 0]],
+                                   [[0, 0, 0], [0, 0, 0], [1, 0, 0]]],
+                                  [[[0,0,0],[0,0,0],[0,1,0]],
+                                   [[0, 0, 0], [0, 0, 0], [0, 1, 0]],
+                                   [[0, 0, 0], [0, 0, 0], [0, 1, 0]]],
+                                  [[[0,0,0],[0,0,0],[0,0,1]],
+                                   [[0,0,0],[0,0,0],[0,0,1]],
+                                   [[0,0,0],[0,0,0],[0,0,1]]]]).float()
+        #self.grad_k = torch.tile(self.grad_k, [1, 1, 1, 1])
+
+    def forward(self,x):
+        #print(x.shape)
+        #print(x.dtype)
+        #print(x.device)
+        #print(self.g_k0.shape)
+        #print(self.g_k0.dtype)
+        #print(self.g_k0.device)
+        self.g_k0=self.g_k0.to(x.device)
+        self.g_k1=self.g_k1.to(x.device)
+        self.gray_k=self.gray_k.to(x.device)
+        self.la_k=self.la_k.to(x.device)
+        self.grad_k=self.grad_k.to(x.device)
+        y0 = torch.nn.functional.conv2d(x, self.g_k0, padding=1)
+        y1 = torch.nn.functional.conv2d(x, self.g_k1, padding=2)
+        y2 = torch.nn.functional.conv2d(x, self.gray_k, padding=0)
+        y3 = torch.nn.functional.conv2d(x, self.la_k, padding=1)
+        y4 = torch.nn.functional.conv2d(x, self.grad_k, padding=1)
+        #print(y0.shape,y1.shape,y2.shape,y3.shape,y4.shape)
+        y=torch.cat([y0,y1,y2,y3,y4,x],dim=1)
+        #print(y.shape)
+        return y

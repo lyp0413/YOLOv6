@@ -1,5 +1,5 @@
 from torch import nn
-from yolov6.layers.common import RepVGGBlock, RepBlock, SimSPPF
+from yolov6.layers.common import RepVGGBlock, RepBlock, SimSPPF,ManCraft
 
 
 class EfficientRep(nn.Module):
@@ -19,8 +19,9 @@ class EfficientRep(nn.Module):
         assert channels_list is not None
         assert num_repeats is not None
 
+        self.mancraft=ManCraft()
         self.stem = RepVGGBlock(
-            in_channels=in_channels,
+            in_channels=15,
             out_channels=channels_list[0],
             kernel_size=3,
             stride=2
@@ -90,6 +91,7 @@ class EfficientRep(nn.Module):
     def forward(self, x):
 
         outputs = []
+        x = self.mancraft(x)
         x = self.stem(x)
         x = self.ERBlock_2(x)
         x = self.ERBlock_3(x)
